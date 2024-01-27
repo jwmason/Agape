@@ -5,11 +5,28 @@ import './Home.css';
 import logo from './logo.png';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom'; 
+import { useBackend } from '../../contexts/BackendContext';
 
 export default function Home() {
+  const { backend } = useBackend();
   const [likeVisible, setLikeVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const profile_data = await backend.get('/profile/ijjcnB1xtxXmwKuPmQT9wNXFgrD3');
+        console.log(profile_data.data);
+        
+      } catch (error) {
+        console.log(error);
+        console.error('Error fetching data:', error);
+      }
+    };
+    getData();
+
+  }, []);
 
   function exitPage() {
      navigate('/');

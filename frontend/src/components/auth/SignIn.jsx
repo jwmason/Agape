@@ -49,7 +49,7 @@ const SignIn = () => {
     };
 
     return (
-        <div clasName='page'>
+        <div className='page'>
             <div className='title-container'>
             <div className='name'>
             <h1>TITLE</h1>

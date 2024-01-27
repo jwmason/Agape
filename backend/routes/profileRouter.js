@@ -11,9 +11,9 @@ const profileRouter = express.Router();
 // and to create a new person with a new name and id (POST)
 
 // GET all items
-valueRouter.get('/', async (req, res) => {
+profileRouter.get('/', async (req, res) => {
   try {
-    const allItems = await db.query(`SELECT * FROM fair_market_value;`);
+    const allItems = await db.query(`SELECT * FROM profiles;`);
     res.status(200).send(allItems);
   } catch (err) {
     res.status(500).send(err.message);
@@ -21,11 +21,12 @@ valueRouter.get('/', async (req, res) => {
 });
 
 // GET all values by item id
-valueRouter.get('/:itemId', async (req, res) => {
+profileRouter.get('/:id', async (req, res) => {
   try {
-    const { itemId } = req.params;
-    const item = await db.query('SELECT * FROM fair_market_value WHERE item_id = $(itemId)', {
-      itemId,
+    const { id } = req.params;
+    console.log(id);
+    const item = await db.query('SELECT * FROM users WHERE id=$(id)', {
+      id,
     });
     res.status(200).send(item);
   } catch (err) {
@@ -34,7 +35,7 @@ valueRouter.get('/:itemId', async (req, res) => {
 });
 
 // CREATE a new item
-valueRouter.post('/', async (req, res) => {
+profileRouter.post('/', async (req, res) => {
   try {
     const { itemName, quantityType, quantity, price } = req.body;
     const newItem = await db.query(
@@ -46,4 +47,4 @@ valueRouter.post('/', async (req, res) => {
   }
 });
 
-module.exports = valueRouter;
+module.exports = profileRouter;
