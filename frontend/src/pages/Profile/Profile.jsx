@@ -89,6 +89,7 @@ const BackButton = styled.button`
 
 const Profile = () => {
   const history = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   // Sample user data (replace with actual data fetching logic)
   const sampleUserData = {

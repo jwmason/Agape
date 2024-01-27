@@ -77,7 +77,6 @@ const handleUserClick = (userId) => {
   return (<>
 
   <div className={styles.home}> 
-  <p> name</p>
     <div className='centerText'>
       <p className='subtleText'>TITLE</p>
     </div>
