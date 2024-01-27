@@ -11,7 +11,7 @@ const ProfileContainer = styled.div`
   background-color: #fff;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   border-radius: 12px;
-  margin-top: 40px;
+  margin-top: 5px;
 `;
 
 const ProfileHeader = styled.h2`
@@ -104,9 +104,9 @@ const Profile = () => {
 
   // Sample metrics data (replace with actual data fetching logic)
   const sampleMetricsData = {
-    followers: 1500,
-    posts: 30,
-    likes: 500,
+    followers: 67,
+    posts: 31,
+    likes: "1/27/2024",
   };
 
   // Sample graph data (replace with actual data fetching logic)
@@ -149,7 +149,7 @@ const Profile = () => {
             labels: sampleGraphData.labels,
             datasets: [
               {
-                label: 'Followers',
+                label: 'Mood Score',
                 data: sampleGraphData.data,
                 fill: false,
                 borderColor: 'rgba(75, 192, 192, 1)',
@@ -165,7 +165,7 @@ const Profile = () => {
             labels: sampleGraphData.labels,
             datasets: [
               {
-                label: 'Posts',
+                label: 'Depressive Words',
                 data: sampleGraphData.data,
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
                 borderColor: 'rgba(75, 192, 192, 1)',
@@ -194,27 +194,32 @@ const Profile = () => {
           {/* Metrics */}
           <MetricsContainer>
             <MetricBox>
-              <MetricTitle>Followers</MetricTitle>
+              <MetricTitle>Current Mood Score</MetricTitle>
               <MetricValue>{sampleMetricsData.followers}</MetricValue>
             </MetricBox>
             <MetricBox>
-              <MetricTitle>Posts</MetricTitle>
+              <MetricTitle>Depressive Words</MetricTitle>
               <MetricValue>{sampleMetricsData.posts}</MetricValue>
             </MetricBox>
             <MetricBox>
-              <MetricTitle>Likes</MetricTitle>
+              <MetricTitle>Most Recent Check-in</MetricTitle>
               <MetricValue>{sampleMetricsData.likes}</MetricValue>
+            </MetricBox>
+            {/* Fourth Box */}
+            <MetricBox>
+              <MetricTitle>Possible Illnesses</MetricTitle>
+              <MetricValue>Depression</MetricValue>
             </MetricBox>
           </MetricsContainer>
 
           {/* Graphs */}
           <GraphContainer>
             <GraphBox>
-              <GraphTitle>Followers Over Time</GraphTitle>
+              <GraphTitle>Mood Score</GraphTitle>
               <canvas id="followersChart"></canvas>
             </GraphBox>
             <GraphBox>
-              <GraphTitle>Posts Over Time</GraphTitle>
+              <GraphTitle>Depressive Word Count</GraphTitle>
               <canvas id="postsChart"></canvas>
             </GraphBox>
           </GraphContainer>
