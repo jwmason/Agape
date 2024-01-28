@@ -4,22 +4,25 @@ import styled from 'styled-components';
 import Chart from 'chart.js/auto';
 import { useBackend } from '../../contexts/BackendContext';
 
+
 // Styled components for better styling
 const ProfileContainer = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
+  margin: 0 40px;
+  padding: 20px 0;
   background-color: #fff;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   border-radius: 12px;
-  margin-top: 5px;
 `;
 
 const ProfileHeader = styled.h2`
+margin-left: 20px;
+
   color: #333;
 `;
 
 const UserData = styled.p`
+margin-left: 20px;
+
   font-size: 1.2em;
   margin: 12px 0;
   color: #555;
@@ -47,6 +50,7 @@ const MetricBox = styled.div`
 `;
 
 const MetricTitle = styled.h3`
+  
   color: #555;
 `;
 
@@ -78,7 +82,7 @@ const GraphTitle = styled.h3`
 const BackButton = styled.button`
   position: absolute;
   top: 20px;
-  right: 20px;
+  right: 70px;
   padding: 10px 15px;
   background-color: #3498db;
   color: #fff;
@@ -87,6 +91,43 @@ const BackButton = styled.button`
   cursor: pointer;
   font-size: 1em;
 `;
+
+const ScrollableList = styled.div`
+  max-height: 50px;
+  overflow-y: auto;
+  margin-top: -15px;
+`;
+
+const ScrollableItemList = styled.div`
+  margin-top: 10px;
+
+  div {
+    cursor: pointer;
+    font-size: 1.2em; /* Adjust the font size to match other words */
+    color: #333; /* Adjust the color to match other words */
+    margin: 5px 0;
+    padding: 5px;
+    &:hover {
+      background-color: #f0f0f0; /* Adjust hover background color if needed */
+    }
+  }
+`;
+
+
+const ScrollableProfileList = ({ items, onItemClick }) => {
+  return (
+    <ScrollableList>
+      <ScrollableItemList>
+        {items.map((item, index) => (
+          <div key={index} onClick={() => onItemClick(item)}>
+            {item}
+          </div>
+        ))}
+      </ScrollableItemList>
+    </ScrollableList>
+  );
+};
+
 
 const Profile = () => {
   const history = useNavigate();
@@ -99,12 +140,22 @@ const Profile = () => {
   const userId = location.state && location.state.UID;
   const { backend } = useBackend();
   const [wordGraphData, setWordGraphData] = useState(null);
+  const [chat, setChatData] = useState(null);
+  const [illnessesArray, setIllnessesArray] = useState(null);
+  const [selectedIllness, setSelectedIllness] = useState(null);
+  const [mood, setMood] = useState(null);
+  const handleIllnessSelect = (selectedIllness) => {
+    setSelectedIllness(selectedIllness);
+  };
+
+
 
   
   // Sample user data (replace with actual data fetching logic)
   
   // Use useParams to get the profile ID from the URL
   const { id } = useParams();
+  
 
   function convertDateFormat(inputDate) {
     const dateObject = new Date(inputDate);
@@ -139,6 +190,7 @@ const Profile = () => {
       try {
         const profileData = await backend.get(`/profile/profile/${userId}`);
         setUserData(profileData.data[0]);
+        setChatData(profileData.data[0]['chat']);
 
         const x = {
           id: profileData.data[0]['id'],
@@ -149,9 +201,12 @@ const Profile = () => {
         const cleanedString = z.replace(/[{"]+/g, '').replace(/[}"]+/g, '');
   
   // Split the cleaned string based on commas
-        const illnessesArray = cleanedString.split(',');
+        setIllnessesArray(cleanedString.split(','));
 
-        console.log(illnessesArray);
+        
+
+        //const chat = setChat(chatResponse);
+        
 
         const jsonArrayString = '[' + profileData.data[0]['date_score_info'].slice(1, -1) + ']';
         const jsonArrayStringWithArrays = jsonArrayString.replace(/\("\d{4}-\d{2}-\d{2}",\d{2}"\)/g, match => `[${match.slice(1, -1)}]`);
@@ -172,7 +227,7 @@ const Profile = () => {
           sad_words: 0, // hard coded for now. will need to do some machine learning or smth or categorize words
           last_check_in: tupleList[0][0],
         };
-        console.log(profileData.data[0]);
+
         setMetricData(y);
 
         const labels = tupleList.map(item => convertDateFormat(item[0]));
@@ -186,9 +241,53 @@ const Profile = () => {
       } catch (err) {
         console.error(err);
       }
+
+      
+
+      /*--
+  const analyzeSentiment = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/analyze_sentiment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text_content: chat }),
+      });
+
+      console.log(1);
+      const data = await response.json();
+      console.log(data);
+      const sentimentScore = data.sentiment_score;
+      console.log(data);
+      console.log(1);
+      
+      // Implement your convert_to_emotion_label logic here
+      // This is just a placeholder example
+      const emotionLabel = sentimentScore > 0 ? 'Positive' : 'Negative';
+
+      setEmotionLabel(emotionLabel);
+    } catch (error) {
+      console.error('Error analyzing sentiment:', error);
+    }
+  };
+  analyzeSentiment();
+  --*/
+
     };
       getData();
   }, []);
+
+
+  // in charge of getting mood
+  useEffect(() => {
+    const getData = async () => {
+    const query = "Given this chat, what mood on a scale from 1 to 100 (1 being worst and 100 being best), would you rate this individual or this conversation? Here is the chat: " + chat;
+    const response = await backend.post(`/openai/mood/${id}`, {
+      chat,
+    });
+    }
+  }, [chat])
 
   // useEffect to create graphs once the component is mounted
   useEffect(() => {
@@ -202,6 +301,13 @@ const Profile = () => {
           existingFollowersChart.destroy();
           history(-1);
         }
+
+        if (metricData['score'] > 75)
+          setMood("Happy");
+        else if (metricData['score'] > 25)
+          setMood("Okay");
+        else 
+          setMood("Sad");
 
         if (existingPostsChart) {
           existingPostsChart.destroy();
@@ -224,30 +330,31 @@ const Profile = () => {
         });
 
         const ctx2 = document.getElementById('postsChart');
-        console.log(userData['word_counts']['happy']);
         const postsChart = new Chart(ctx2, {
           type: 'bar',
           data: {
             labels: ["Happy Words" , "Sad Words"],
             datasets: [
               {
-                label: ['Happy'],
-                data: [userData['word_counts']['happy'], userData['word_counts']['sad']], // Assuming word_counts contains happy word count
-                backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
-                borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
-                borderWidth: 1,
+                label: 'Happy',
+                data: [userData['word_counts']['happy'], 0], // Assuming word_counts contains happy word count
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
               },
               {
-                label: ['Sad'], 
-                backgroundColor: ['rgba(255, 99, 132, 0.2)'],
-                borderColor: [ 'rgba(255, 99, 132, 1)'],
-                borderWidth: 1,
-              }
+                label: 'Sad',
+                data: [0, userData['word_counts']['sad']], // Assuming word_counts contains sad word count
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 2,
+              },
+              
             ],
           },
         });
       }
-    }, [metricData, setGraphData]);
+    }, [metricData]);
 
   const handleBack = () => {
     history(-1);
@@ -259,7 +366,6 @@ const Profile = () => {
       {userData? (
         <>
           <ProfileHeader>{userData.name}'s Profile</ProfileHeader>
-          <UserData>ID: {userData.id}</UserData>
           {/* Add more user details as needed */}
 
           {/* Metrics */}
@@ -279,7 +385,16 @@ const Profile = () => {
             {/* Fourth Box */}
             <MetricBox>
               <MetricTitle>Possible Illnesses</MetricTitle>
-              <MetricValue>Depression</MetricValue>
+              {illnessesArray && (
+                <ScrollableProfileList
+                  items={illnessesArray}
+                  onItemClick={handleIllnessSelect}
+                />
+              )}
+            </MetricBox>
+            <MetricBox>
+              <MetricTitle>Mood</MetricTitle>
+              <MetricValue>{mood}</MetricValue>
             </MetricBox>
           </MetricsContainer>
 

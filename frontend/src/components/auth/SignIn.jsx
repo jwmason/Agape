@@ -52,7 +52,7 @@ const SignIn = () => {
         <div className='page'>
             <div className='title-container'>
             <div className='name'>
-            <h1>TITLE</h1>
+            <h1>AGAPE</h1>
             </div>
             </div>
             <div className='vertical-line'></div>
