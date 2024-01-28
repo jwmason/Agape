@@ -145,6 +145,13 @@ const Profile = () => {
           name: profileData.data[0]['name'],
         };
         setBasicInfo(x);
+        const z = profileData.data[0]['illnesses']
+        const cleanedString = z.replace(/[{"]+/g, '').replace(/[}"]+/g, '');
+  
+  // Split the cleaned string based on commas
+        const illnessesArray = cleanedString.split(',');
+
+        console.log(illnessesArray);
 
         const jsonArrayString = '[' + profileData.data[0]['date_score_info'].slice(1, -1) + ']';
         const jsonArrayStringWithArrays = jsonArrayString.replace(/\("\d{4}-\d{2}-\d{2}",\d{2}"\)/g, match => `[${match.slice(1, -1)}]`);
