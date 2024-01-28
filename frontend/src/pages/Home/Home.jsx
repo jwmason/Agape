@@ -78,7 +78,7 @@ const handleUserClick = (userId) => {
 
   <div className={styles.home}> 
     <div className='centerText'>
-      <p className='subtleText'>TITLE</p>
+      <p className='subtleText'>AGAPE</p>
     </div>
     <MyTable> </MyTable>
     <Button className={styles.exit} onClick={exitPage}>Exit</Button>
