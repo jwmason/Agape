@@ -24,11 +24,49 @@ profileRouter.get('/', async (req, res) => {
 profileRouter.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id);
     const item = await db.query('SELECT * FROM users WHERE id=$(id)', {
       id,
     });
+
     res.status(200).send(item);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+profileRouter.get('/user/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const item = await db.query('SELECT id, name, mood, last_checked FROM profiles WHERE id=$(id)', {
+      id,
+    });
+    res.status(200).json(item);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+profileRouter.get('/profile/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const item = await db.query('SELECT * FROM profiles WHERE id=$(id)', {
+      id,
+    });
+
+    res.status(200).json(item);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+profileRouter.get('/mason/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const item = await db.query('SELECT illnesses FROM profiles WHERE id=$(id)', {
+      id,
+    });
+
+    res.status(200).json(item);
   } catch (err) {
     res.status(500).send(err.message);
   }

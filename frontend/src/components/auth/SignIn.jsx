@@ -22,7 +22,7 @@ const SignIn = () => {
     const signIn = (e) => {
         e.preventDefault();
             signInWithEmailAndPassword(auth, signInEmail, signInPassword).then((userCredential) => 
-            {console.log(userCredential); navigate("/Home");}).catch((error) => {
+            {const userUID = userCredential.user.uid; console.log(userCredential); navigate("/Home", { state: { uid: userUID  } });}).catch((error) => {
             console.log(error);
             setSignInError('Error signing in');
         })
@@ -32,9 +32,9 @@ const SignIn = () => {
         e.preventDefault();
         createUserWithEmailAndPassword(auth, signUpEmail, signUpPassword).then(
             (userCredential) => {
-                
+                const userUID = userCredential.user.uid;
                 console.log(userCredential);
-                navigate('/Home');})
+                navigate("/Home", { state: { uid: userUID  } });})
             .catch((error) => {
             console.log(error);
         });

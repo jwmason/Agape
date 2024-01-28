@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import Chart from 'chart.js/auto';
+import { useBackend } from '../../contexts/BackendContext';
 
 // Styled components for better styling
 const ProfileContainer = styled.div`
@@ -90,21 +91,38 @@ const BackButton = styled.button`
 const Profile = () => {
   const history = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
+  const location = useLocation();
+  const [basicInfo, setBasicInfo] = useState(null);
+  const [metricData, setMetricData] = useState(null);
+  const [graphData, setGraphData] = useState(null);
+  const userId = location.state && location.state.UID;
+  const { backend } = useBackend();
+  const [wordGraphData, setWordGraphData] = useState(null);
 
+  
   // Sample user data (replace with actual data fetching logic)
-  const sampleUserData = {
-    id: 1,
-    username: 'john_doe',
-    email: 'john.doe@example.com',
-    // Add more user details as needed
-  };
-
+  
   // Use useParams to get the profile ID from the URL
   const { id } = useParams();
 
+  function convertDateFormat(inputDate) {
+    const dateObject = new Date(inputDate);
+    
+    // Extracting components of the date
+    const year = dateObject.getFullYear().toString().slice(-2); // Extracting last two digits of the year
+    const month = (dateObject.getMonth() + 1).toString().padStart(2, '0'); // Adding leading zero if needed
+    const day = dateObject.getDate().toString().padStart(2, '0'); // Adding leading zero if needed
+  
+    // Combining components in MM/DD/YY format
+    const formattedDate = `${month}/${day}/${year}`;
+  
+    return formattedDate;
+  }
+
   // Sample metrics data (replace with actual data fetching logic)
   const sampleMetricsData = {
-    followers: 67,
+    score: 67,
     posts: 31,
     likes: "1/27/2024",
   };
@@ -115,15 +133,55 @@ const Profile = () => {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'], // Example labels for the graph
   };
 
-  // State to store user data
-  const [userData, setUserData] = useState(null);
-
   // useEffect to simulate fetching user data based on the profile ID
   useEffect(() => {
-    // Replace this with actual data fetching logic (e.g., API call)
-    // For now, using the sampleUserData with the provided ID
-    setUserData(sampleUserData);
-  }, [id]);
+    const getData = async () => {
+      try {
+        const profileData = await backend.get(`/profile/profile/${userId}`);
+        setUserData(profileData.data[0]);
+
+        const x = {
+          id: profileData.data[0]['id'],
+          name: profileData.data[0]['name'],
+        };
+        setBasicInfo(x);
+
+        const jsonArrayString = '[' + profileData.data[0]['date_score_info'].slice(1, -1) + ']';
+        const jsonArrayStringWithArrays = jsonArrayString.replace(/\("\d{4}-\d{2}-\d{2}",\d{2}"\)/g, match => `[${match.slice(1, -1)}]`);
+        const iterableObject = JSON.parse(jsonArrayStringWithArrays);
+        
+        const convertStringToTuple = (str) => {
+          const [date, value] = str
+            .replace('(', '')
+            .replace(')', '')
+            .split(',');
+      
+          return [String(date), parseInt(value)];
+        };
+      
+        const tupleList = iterableObject.map((str) => convertStringToTuple(str));
+        const y = {
+          score: tupleList[0][1],
+          sad_words: 0, // hard coded for now. will need to do some machine learning or smth or categorize words
+          last_check_in: tupleList[0][0],
+        };
+        console.log(profileData.data[0]);
+        setMetricData(y);
+
+        const labels = tupleList.map(item => convertDateFormat(item[0]));
+        const data = tupleList.map(item => item[1]);
+
+        setGraphData({
+          data: data,
+          labels: labels
+        });
+
+      } catch (err) {
+        console.error(err);
+      }
+    };
+      getData();
+  }, []);
 
   // useEffect to create graphs once the component is mounted
   useEffect(() => {
@@ -146,11 +204,11 @@ const Profile = () => {
         const followersChart = new Chart(ctx1, {
           type: 'line',
           data: {
-            labels: sampleGraphData.labels,
+            labels: graphData.labels,
             datasets: [
               {
                 label: 'Mood Score',
-                data: sampleGraphData.data,
+                data: graphData.data,
                 fill: false,
                 borderColor: 'rgba(75, 192, 192, 1)',
               },
@@ -162,11 +220,11 @@ const Profile = () => {
         const postsChart = new Chart(ctx2, {
           type: 'bar',
           data: {
-            labels: sampleGraphData.labels,
+            labels: graphData.labels,
             datasets: [
               {
                 label: 'Depressive Words',
-                data: sampleGraphData.data,
+                data: graphData.data,
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 1,
@@ -175,7 +233,7 @@ const Profile = () => {
           },
         });
       }
-    }, [userData, sampleGraphData]);
+    }, [metricData, setGraphData]);
 
   const handleBack = () => {
     history(-1);
@@ -184,26 +242,25 @@ const Profile = () => {
   return (
     <ProfileContainer>
       <BackButton onClick={handleBack}>Back</BackButton>
-      {userData ? (
+      {userData? (
         <>
-          <ProfileHeader>{userData.username}'s Profile</ProfileHeader>
+          <ProfileHeader>{userData.name}'s Profile</ProfileHeader>
           <UserData>ID: {userData.id}</UserData>
-          <UserData>Email: {userData.email}</UserData>
           {/* Add more user details as needed */}
 
           {/* Metrics */}
           <MetricsContainer>
             <MetricBox>
               <MetricTitle>Current Mood Score</MetricTitle>
-              <MetricValue>{sampleMetricsData.followers}</MetricValue>
+              <MetricValue>{metricData.score}</MetricValue>
             </MetricBox>
             <MetricBox>
               <MetricTitle>Depressive Words</MetricTitle>
-              <MetricValue>{sampleMetricsData.posts}</MetricValue>
+              <MetricValue>{metricData.sad_words}</MetricValue>
             </MetricBox>
             <MetricBox>
               <MetricTitle>Most Recent Check-in</MetricTitle>
-              <MetricValue>{sampleMetricsData.likes}</MetricValue>
+              <MetricValue>{metricData.last_check_in}</MetricValue>
             </MetricBox>
             {/* Fourth Box */}
             <MetricBox>

@@ -4,20 +4,51 @@ import styles from './Home.module.css';
 import './Home.css';
 import logo from './logo.png';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom'; 
+import { Link, useNavigate, useLocation } from 'react-router-dom'; 
 import { useBackend } from '../../contexts/BackendContext';
+
 
 export default function Home() {
   const { backend } = useBackend();
+  const [dataSource, setDataSource] = useState([]);
   const [likeVisible, setLikeVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const userUID = location.state && location.state.uid;
 
   useEffect(() => {
     const getData = async () => {
       try {
-        const profile_data = await backend.get('/profile/ijjcnB1xtxXmwKuPmQT9wNXFgrD3');
-        console.log(profile_data.data);
+        const profile_data = await backend.get(`/profile/${userUID}`);
+        const friends = profile_data.data[0].friends || [];
+        //console.log(friends);
+
+        const friendPromises = friends.map(async (friendId) => {
+          try {
+            const friendData = await backend.get(`/profile/user/${friendId}`);
+          
+            const { id, name, mood, last_checked } = friendData.data[0];
+           
+            
+            const formattedLastOnline = new Date(last_checked).toLocaleString();
+            
+          
+            // Add a unique key and name property to the friendData
+            return { key: id, name, mood, formattedLastOnline };
+          } catch (error) {
+            console.error(`Error fetching data for friend with ID ${friendId}:`, error);
+            return null;
+          }
+        });
+
+
+        // Wait for all friend data requests to complete
+        const friendDataArray = await Promise.all(friendPromises);
+        //console.log(friendDataArray);
+        setDataSource(friendDataArray.filter((friendData) => friendData !== null));
+
+        //console.log(profile_data.data);
         
       } catch (error) {
         console.log(error);
@@ -36,34 +67,6 @@ export default function Home() {
     window.location.reload();
   }
 
-  
-const dataSource = [
-  {
-    key: '1',
-    name: 'Kainoa Nishida',
-    mood: 25,
-    lastOnline: '123 Main St',
-  },
-  {
-    key: '2',
-    name: 'Mason',
-    mood: 30,
-    lastOnline: '456 Oak St',
-  },
-  {
-    key: '3',
-    name: 'Austin',
-    mood: 30,
-    lastOnline: '456 Oak St',
-  },
-  {
-    key: '4',
-    name: 'Josh',
-    mood: 30,
-    lastOnline: '456 Oak St',
-  },
-];
-
 const columns = [
   {
     title: 'Name',
@@ -78,8 +81,8 @@ const columns = [
   },
   {
     title: 'Last Online',
-    dataIndex: 'lastOnline',
-    key: 'lastOnline',
+    dataIndex: 'formattedLastOnline',
+    key: 'last_checked',
   },
 ];
 
@@ -88,7 +91,7 @@ const MyTable = () => {
 };
 
 const handleUserClick = (userId) => {
-  navigate(`/profile/${userId}`);
+  navigate(`/profile/${userId}`, { state: { UID: userId  } });
 };
 
   return (<>
