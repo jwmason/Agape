@@ -217,18 +217,25 @@ const Profile = () => {
         });
 
         const ctx2 = document.getElementById('postsChart');
+        console.log(userData['word_counts']['happy']);
         const postsChart = new Chart(ctx2, {
           type: 'bar',
           data: {
-            labels: graphData.labels,
+            labels: ["Happy Words" , "Sad Words"],
             datasets: [
               {
-                label: 'Depressive Words',
-                data: graphData.data,
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
+                label: ['Happy'],
+                data: [userData['word_counts']['happy'], userData['word_counts']['sad']], // Assuming word_counts contains happy word count
+                backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
+                borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
                 borderWidth: 1,
               },
+              {
+                label: ['Sad'], 
+                backgroundColor: ['rgba(255, 99, 132, 0.2)'],
+                borderColor: [ 'rgba(255, 99, 132, 1)'],
+                borderWidth: 1,
+              }
             ],
           },
         });
